@@ -203,17 +203,17 @@
         <!-- Section 2: Recommendations -->
         <div class="section">
             <h2>Recommendations</h2>
-            <div class="section-content">
-                <!-- TODO: This section will be filled in later with AI-generated recommendations -->
-                <!-- Expected content:
-                     - Product improvement suggestions
-                     - Pricing strategy recommendations
-                     - Marketing/positioning advice
-                     - Feature additions or modifications
-                     - Target audience insights
-                -->
-                <p>Content will be populated dynamically...</p>
+            {% if product_recommendations %}
+            <div class="section-content report-content">
+                {{ product_recommendations|safe }}
             </div>
+            {% else %}
+            <div class="section-content">
+                <div class="no-report-message">
+                    <p>No recommendations have been generated yet.</p>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Action Buttons -->

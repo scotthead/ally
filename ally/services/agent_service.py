@@ -12,6 +12,7 @@ from google.genai.types import Content, Part
 from ally.ai.agents.competitor_report import competitor_report_agent
 from ally.ai.agents.recommendations import recommendations_agent
 from ally.services.competitor_report_service import competitor_report_service
+from ally.services.product_recommendation_service import product_recommendation_service
 
 logger = logging.getLogger(__name__)
 
@@ -207,6 +208,10 @@ class AgentService:
         recommendations = AgentService._extract_final_response(events)
 
         logger.info(f'Agent execution completed. Generated {len(events)} events.')
+
+        # Save the recommendations using the ProductRecommendationService
+        product_recommendation_service.save_recommendations(product_id, recommendations)
+        logger.info(f'Saved recommendations for product: {product_id}')
 
         return recommendations
 

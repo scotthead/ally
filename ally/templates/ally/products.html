@@ -182,9 +182,16 @@
             font-size: 13px;
         }
 
+        .action-section {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
         .action-button {
             display: inline-block;
-            margin-top: 15px;
             padding: 12px 24px;
             background-color: #007bff;
             color: white;
@@ -204,6 +211,26 @@
         .action-button:disabled {
             background-color: #6c757d;
             cursor: not-allowed;
+        }
+
+        .cache-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: #555;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .cache-checkbox-label:hover {
+            color: #333;
+        }
+
+        .disable-cache-checkbox {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
         }
 
         .spinner {
@@ -323,10 +350,16 @@
                     </div>
                     {% endif %}
 
-                    <button class="action-button start-analysis-btn" data-product-id="{{ product.product_id }}">
-                        <span class="btn-text">Start Competitive Analysis</span>
-                        <span class="spinner hidden"></span>
-                    </button>
+                    <div class="action-section">
+                        <button class="action-button start-analysis-btn" data-product-id="{{ product.product_id }}">
+                            <span class="btn-text">Start Competitive Analysis</span>
+                            <span class="spinner hidden"></span>
+                        </button>
+                        <label class="cache-checkbox-label">
+                            <input type="checkbox" class="disable-cache-checkbox" data-product-id="{{ product.product_id }}">
+                            Disable Cached Values
+                        </label>
+                    </div>
                 </li>
                 {% endfor %}
             </ul>
@@ -366,9 +399,13 @@
                 const btnText = this.querySelector('.btn-text');
                 const spinner = this.querySelector('.spinner');
 
+                // Get the checkbox state for this product
+                const checkbox = document.querySelector(`.disable-cache-checkbox[data-product-id="${productId}"]`);
+                const forceRegeneration = checkbox ? checkbox.checked : false;
+
                 // Disable button and show spinner
                 this.disabled = true;
-                btnText.textContent = 'Generating Report...';
+                btnText.textContent = forceRegeneration ? 'Regenerating Report...' : 'Generating Report...';
                 spinner.classList.remove('hidden');
 
                 try {
@@ -382,6 +419,9 @@
                             'X-CSRFToken': csrftoken,
                             'Content-Type': 'application/json'
                         },
+                        body: JSON.stringify({
+                            force_regeneration: forceRegeneration
+                        }),
                         signal: controller.signal
                     });
 

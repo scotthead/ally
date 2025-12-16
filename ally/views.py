@@ -4,9 +4,11 @@ import logging
 from django.shortcuts import render, get_object_or_404
 from django.http import Http404, JsonResponse
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 from ally.product_service import product_service
 from ally.services.agent_service import AgentService
 from ally.services.competitor_report_service import competitor_report_service
+from ally.services.product_recommendation_service import product_recommendation_service
 
 logger = logging.getLogger(__name__)
 
@@ -29,17 +31,38 @@ def recommendations(request, product_id):
     # Get the report from the CompetitorReportService
     report = competitor_report_service.get_report(product_id)
 
+    # Get the recommendations from the ProductRecommendationService
+    recommendations = product_recommendation_service.get_recommendations(product_id)
+
     context = {
         'product': product,
-        'competitor_report': report
+        'competitor_report': report,
+        'product_recommendations': recommendations
     }
     return render(request, 'ally/recommendations.html', context)
 
 
+@csrf_exempt
 @require_http_methods(["POST"])
 def generate_competitor_report_view(request, product_id):
-    """API endpoint to generate a competitor report for a product."""
-    logger.info(f'Received request to generate competitor report for product: {product_id}')
+    """
+    API endpoint to generate a competitor report and recommendations for a product.
+
+    Args:
+        request: The HTTP request
+        product_id: The product ID
+    """
+    # Get force_regeneration from request body if present
+    import json
+    force_regeneration = False
+    try:
+        if request.body:
+            body = json.loads(request.body)
+            force_regeneration = body.get('force_regeneration', False)
+    except json.JSONDecodeError:
+        force_regeneration = False
+
+    logger.info(f'Received request to generate competitor report for product: {product_id} (force_regeneration={force_regeneration})')
 
     # Verify the product exists
     product = product_service.get_product_by_id(product_id)
@@ -50,21 +73,66 @@ def generate_competitor_report_view(request, product_id):
         }, status=404)
 
     try:
-        # Run the agent service (which will save the report to CompetitorReportService)
-        report = asyncio.run(
-            AgentService.run_competitor_report(
-                product_id=product_id,
-                user_id=request.session.session_key or 'anonymous',
-                timeout_seconds=300  # 5 minutes
-            )
-        )
+        report = None
+        recommendations = None
+        report_generated = False
+        recommendations_generated = False
 
-        logger.info(f'Successfully generated competitor report for product: {product_id}')
+        # Check if we should use cached values
+        if not force_regeneration:
+            # Try to get existing report
+            report = competitor_report_service.get_report(product_id)
+            if report:
+                logger.info(f'Using cached competitor report for product: {product_id}')
+
+            # Try to get existing recommendations
+            recommendations = product_recommendation_service.get_recommendations(product_id)
+            if recommendations:
+                logger.info(f'Using cached recommendations for product: {product_id}')
+
+        # Generate competitor report if needed
+        if force_regeneration or not report:
+            report = asyncio.run(
+                AgentService.run_competitor_report(
+                    product_id=product_id,
+                    user_id=request.session.session_key or 'anonymous',
+                    timeout_seconds=300  # 5 minutes
+                )
+            )
+            report_generated = True
+            logger.info(f'Successfully generated new competitor report for product: {product_id}')
+
+        # Generate recommendations if needed
+        if force_regeneration or not recommendations:
+            recommendations = asyncio.run(
+                AgentService.run_recommendations(
+                    product_id=product_id,
+                    user_id=request.session.session_key or 'anonymous',
+                    timeout_seconds=300  # 5 minutes
+                )
+            )
+            recommendations_generated = True
+            logger.info(f'Successfully generated new recommendations for product: {product_id}')
+
+        # Prepare status message
+        if report_generated and recommendations_generated:
+            message = 'Competitor report and recommendations generated successfully'
+        elif report_generated:
+            message = 'Competitor report generated successfully, using cached recommendations'
+        elif recommendations_generated:
+            message = 'Recommendations generated successfully, using cached competitor report'
+        else:
+            message = 'Using cached competitor report and recommendations'
 
         return JsonResponse({
             'status': 'success',
-            'message': 'Competitor report generated successfully',
-            'report': report
+            'message': message,
+            'report': report,
+            'recommendations': recommendations,
+            'cached': {
+                'report': not report_generated,
+                'recommendations': not recommendations_generated
+            }
         })
 
     except Exception as e:
