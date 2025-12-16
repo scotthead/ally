@@ -72,22 +72,57 @@
         .section-content.report-content {
             background-color: #ffffff;
             border: 1px solid #e0e0e0;
-            white-space: pre-wrap;
             font-family: 'Segoe UI', Roboto, sans-serif;
+            color: #333;
         }
 
-        .section-content.report-content h1,
-        .section-content.report-content h2,
-        .section-content.report-content h3 {
+        .section-content.report-content h1 {
+            color: #222;
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-size: 28px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+
+        .section-content.report-content h2 {
             color: #333;
             margin-top: 20px;
+            margin-bottom: 12px;
+            font-size: 24px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 6px;
+        }
+
+        .section-content.report-content h3 {
+            color: #444;
+            margin-top: 16px;
             margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .section-content.report-content h4 {
+            color: #555;
+            margin-top: 14px;
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        .section-content.report-content p {
+            margin-bottom: 12px;
+            line-height: 1.6;
+            color: #333;
         }
 
         .section-content.report-content ul,
         .section-content.report-content ol {
-            margin-left: 20px;
+            margin-left: 24px;
             margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .section-content.report-content li {
+            margin-bottom: 6px;
         }
 
         .section-content.report-content table {
@@ -98,7 +133,7 @@
 
         .section-content.report-content th,
         .section-content.report-content td {
-            padding: 10px;
+            padding: 12px;
             border: 1px solid #ddd;
             text-align: left;
         }
@@ -106,6 +141,50 @@
         .section-content.report-content th {
             background-color: #f5f5f5;
             font-weight: 600;
+        }
+
+        .section-content.report-content code {
+            background-color: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .section-content.report-content pre {
+            background-color: #f5f5f5;
+            padding: 12px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+
+        .section-content.report-content pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+
+        .section-content.report-content blockquote {
+            border-left: 4px solid #ddd;
+            padding-left: 16px;
+            margin-left: 0;
+            color: #666;
+            font-style: italic;
+        }
+
+        .section-content.report-content strong {
+            font-weight: 600;
+            color: #222;
+        }
+
+        .section-content.report-content em {
+            font-style: italic;
+        }
+
+        .section-content.report-content hr {
+            border: none;
+            border-top: 2px solid #e0e0e0;
+            margin: 20px 0;
         }
 
         .no-report-message {
@@ -187,9 +266,10 @@
         <div class="section">
             <h2>Competitor Analysis Report</h2>
             {% if competitor_report %}
-            <div class="section-content report-content">
-                {{ competitor_report|safe }}
+            <div class="section-content report-content" id="competitor-report-content">
+                <!-- Markdown will be rendered here by JavaScript -->
             </div>
+            <script type="text/markdown" id="competitor-report-markdown">{{ competitor_report }}</script>
             {% else %}
             <div class="section-content">
                 <div class="no-report-message">
@@ -204,9 +284,10 @@
         <div class="section">
             <h2>Recommendations</h2>
             {% if product_recommendations %}
-            <div class="section-content report-content">
-                {{ product_recommendations|safe }}
+            <div class="section-content report-content" id="recommendations-content">
+                <!-- Markdown will be rendered here by JavaScript -->
             </div>
+            <script type="text/markdown" id="recommendations-markdown">{{ product_recommendations }}</script>
             {% else %}
             <div class="section-content">
                 <div class="no-report-message">
@@ -222,5 +303,33 @@
             <a href="{% url 'products_list' %}" class="button button-reject">Reject Recommendations</a>
         </div>
     </div>
+
+    <!-- Include marked.js library for markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        // Configure marked options for better rendering
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            headerIds: true,
+            mangle: false
+        });
+
+        // Render competitor report markdown
+        const competitorReportMarkdown = document.getElementById('competitor-report-markdown');
+        if (competitorReportMarkdown) {
+            const markdownText = competitorReportMarkdown.textContent;
+            const htmlContent = marked.parse(markdownText);
+            document.getElementById('competitor-report-content').innerHTML = htmlContent;
+        }
+
+        // Render recommendations markdown
+        const recommendationsMarkdown = document.getElementById('recommendations-markdown');
+        if (recommendationsMarkdown) {
+            const markdownText = recommendationsMarkdown.textContent;
+            const htmlContent = marked.parse(markdownText);
+            document.getElementById('recommendations-content').innerHTML = htmlContent;
+        }
+    </script>
 </body>
 </html>
