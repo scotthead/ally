@@ -45,7 +45,7 @@ Your task is to generate a comprehensive competitor report comparing a source pr
       - Competitive advantages highlighted
       - Areas for improvement
 
-4. **Generate Report**: Create a text-based report with:
+4. **Generate Report**: Create a well structured report with:
    - Executive summary
    - Detailed comparison tables
    - Strengths and weaknesses of the source product
@@ -54,7 +54,7 @@ Your task is to generate a comprehensive competitor report comparing a source pr
 
 ## Output Format:
 
-Generate a well-structured text-based report that is easy to read and actionable for product managers and marketing teams.
+Generate a well-structured markdown report that is easy to read and actionable for product managers and marketing teams.
 
 Use clear headings, bullet points, and simpletables where appropriate to make the data easy to digest.
 

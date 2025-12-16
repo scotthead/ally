@@ -135,7 +135,7 @@ COMPETITORS_FILE = os.environ.get(
     str(BASE_DIR / 'ally' / 'data' / 'synthetic_competitor_products.csv')
 )
 
-GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', 'AIzaSyBkdgkq2aZJ-f_Pb9W1jr7RNGLkzXNbdO4')
+GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', 'AIzaSyASHuD39HUddRCLYaefNT1Z5bw4wgbrXM0')
 os.environ['GOOGLE_API_KEY'] = GOOGLE_API_KEY
 
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', 'sk-not-setup')

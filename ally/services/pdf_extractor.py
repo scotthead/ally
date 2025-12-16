@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 from typing import List, Dict, Any, Optional
+
 import fitz  # PyMuPDF
 
 logger = logging.getLogger(__name__)

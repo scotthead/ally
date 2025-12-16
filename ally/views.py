@@ -5,7 +5,8 @@ from django.shortcuts import render, get_object_or_404
 from django.http import Http404, JsonResponse
 from django.views.decorators.http import require_http_methods
 from ally.product_service import product_service
-from ally.services import AgentService
+from ally.services.agent_service import AgentService
+from ally.services.competitor_report_service import competitor_report_service
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +26,8 @@ def recommendations(request, product_id):
     if not product:
         raise Http404("Product not found")
 
-    # Check if we have a report in the session
-    report = request.session.get(f'competitor_report_{product_id}')
+    # Get the report from the CompetitorReportService
+    report = competitor_report_service.get_report(product_id)
 
     context = {
         'product': product,
@@ -49,7 +50,7 @@ def generate_competitor_report_view(request, product_id):
         }, status=404)
 
     try:
-        # Run the agent service
+        # Run the agent service (which will save the report to CompetitorReportService)
         report = asyncio.run(
             AgentService.run_competitor_report(
                 product_id=product_id,
@@ -57,9 +58,6 @@ def generate_competitor_report_view(request, product_id):
                 timeout_seconds=300  # 5 minutes
             )
         )
-
-        # Store the report in the session
-        request.session[f'competitor_report_{product_id}'] = report
 
         logger.info(f'Successfully generated competitor report for product: {product_id}')
 

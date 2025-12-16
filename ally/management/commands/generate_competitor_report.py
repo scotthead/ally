@@ -1,10 +1,12 @@
 import logging
 import asyncio
+import os
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from ally.product_service import product_service
-from ally.services import AgentService
+from ally.services.agent_service import AgentService
 
 logger = logging.getLogger(__name__)
 
@@ -70,19 +72,22 @@ class Command(BaseCommand):
             )
 
             # Output the report
-            if output_file:
-                with open(output_file, 'w', encoding='utf-8') as f:
-                    f.write(report)
-                self.stdout.write(
-                    self.style.SUCCESS(f'Report saved to {output_file}')
-                )
-                logger.info(f'Report saved to {output_file}')
-            else:
-                self.stdout.write('\n' + '='*80)
-                self.stdout.write('COMPETITOR REPORT')
-                self.stdout.write('='*80 + '\n')
-                self.stdout.write(report)
-                self.stdout.write('\n' + '='*80 + '\n')
+            if not output_file:
+                output_file = os.path.join(settings.BASE_DIR, 'reports', f'competitor_report_{product_id}.md')
+                os.makedirs(os.path.dirname(output_file), exist_ok=True)
+                
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write(report)
+            self.stdout.write(
+                self.style.SUCCESS(f'Report saved to {output_file}')
+            )
+            logger.info(f'Report saved to {output_file}')
+            
+            self.stdout.write('\n' + '='*80)
+            self.stdout.write('COMPETITOR REPORT')
+            self.stdout.write('='*80 + '\n')
+            self.stdout.write(report)
+            self.stdout.write('\n' + '='*80 + '\n')
 
             logger.info('Competitor report generated successfully')
             self.stdout.write(self.style.SUCCESS('Report generated successfully'))

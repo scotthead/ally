@@ -1,6 +1,6 @@
 import logging
 from django.core.management.base import BaseCommand
-from ally.services import PDFExtractor
+from ally.services.pdf_extractor import PDFExtractor
 
 logger = logging.getLogger(__name__)
 

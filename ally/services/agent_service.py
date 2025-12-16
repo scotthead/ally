@@ -10,6 +10,8 @@ from google.adk.agents.run_config import RunConfig, StreamingMode
 from google.genai.types import Content, Part
 
 from ally.ai.agents.competitor_report import competitor_report_agent
+from ally.ai.agents.recommendations import recommendations_agent
+from ally.services.competitor_report_service import competitor_report_service
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +104,111 @@ class AgentService:
 
         logger.info(f'Agent execution completed. Generated {len(events)} events.')
 
+        # Save the report using the CompetitorReportService
+        competitor_report_service.save_report(product_id, report)
+        logger.info(f'Saved competitor report for product: {product_id}')
+
         return report
+
+    @staticmethod
+    async def run_recommendations(
+        product_id: str,
+        user_id: str = 'default_user',
+        timeout_seconds: int = 300
+    ) -> str:
+        """
+        Run the recommendations agent for a specific product.
+
+        Args:
+            product_id: The product ID to analyze
+            user_id: The user ID for the session
+            timeout_seconds: Maximum time to wait for completion (default: 300 seconds / 5 minutes)
+
+        Returns:
+            The generated recommendations as a string
+
+        Raises:
+            ValueError: If the product_id is invalid or agent fails
+            TimeoutError: If the agent execution exceeds the timeout
+        """
+        logger.info(f'Starting recommendations generation for product: {product_id}')
+
+        # Load competitor report from service
+        competitor_report = competitor_report_service.get_report(product_id)
+        if competitor_report:
+            logger.info(f'Loaded competitor report from service for product: {product_id}')
+        else:
+            logger.info(f'No competitor report found for product: {product_id}')
+
+        # Create the agent
+        agent = recommendations_agent(product_id, competitor_report)
+        agent_name = "recommendations_agent"
+
+        # Create session service (in-memory)
+        session_service = InMemorySessionService()
+
+        # Create a new session
+        session_id = str(uuid.uuid4())
+        logger.info(f'Creating session: {session_id}')
+
+        # Include competitor report in session state
+        session_state = {
+            "user_id": user_id,
+            "product_id": product_id,
+        }
+
+        if competitor_report:
+            session_state["competitor_report"] = competitor_report
+
+        await session_service.create_session(
+            app_name=agent_name,
+            user_id=user_id,
+            session_id=session_id,
+            state=session_state,
+        )
+
+        logger.info(f'Session created: {session_id}')
+
+        # Create the runner with in-memory services
+        runner = Runner(
+            agent=agent,
+            app_name=agent_name,
+            session_service=session_service,
+            artifact_service=InMemoryArtifactService(),
+            memory_service=InMemoryMemoryService(),
+        )
+
+        logger.info('Starting agent execution')
+
+        # Prepare the user message as a Content object
+        message_text = f"Generate 3 actionable product optimization recommendations for product ID: {product_id}"
+        user_message = Content(
+            role="user",
+            parts=[Part(text=message_text)]
+        )
+
+        # Run the agent and collect events
+        events = []
+        try:
+            async for event in runner.run_async(
+                user_id=user_id,
+                session_id=session_id,
+                new_message=user_message,
+                run_config=RunConfig(streaming_mode=StreamingMode.NONE),
+            ):
+                events.append(event)
+                logger.debug(f'Received event: {event.type if hasattr(event, "type") else type(event).__name__}')
+
+        except Exception as e:
+            logger.error(f'Error during agent execution: {str(e)}', exc_info=True)
+            raise ValueError(f'Agent execution failed: {str(e)}')
+
+        # Extract the final response from events
+        recommendations = AgentService._extract_final_response(events)
+
+        logger.info(f'Agent execution completed. Generated {len(events)} events.')
+
+        return recommendations
 
     @staticmethod
     def _extract_final_response(events) -> str:
