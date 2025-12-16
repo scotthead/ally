@@ -5,9 +5,9 @@ from google.adk.agents import Agent
 from google.adk.models.lite_llm import LiteLlm
 
 from ally.ai.agents.consts import DEFAULT_MODEL
-from ally.ai.agents.competior_report.prompt import instructions
-from ally.ai.agents.competior_report.tools import lookup_product, lookup_competitors
-from ally.ai.agents.competior_report.callbacks import save_llm_request_callback
+from ally.ai.agents.competitor_report.prompt import instructions
+from ally.ai.agents.competitor_report.tools import lookup_product, lookup_competitors
+from ally.ai.agents.competitor_report.callbacks import save_llm_request_callback
 
 logger = logging.getLogger(__name__)
 

@@ -9,7 +9,7 @@ from google.adk.memory import InMemoryMemoryService
 from google.adk.agents.run_config import RunConfig, StreamingMode
 from google.genai.types import Content, Part
 
-from ally.ai.agents.competior_report import competitor_report_agent
+from ally.ai.agents.competitor_report import competitor_report_agent
 
 logger = logging.getLogger(__name__)
 
