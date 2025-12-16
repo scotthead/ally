@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Competitive Analysis - {{ product.title }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .product-info {
+            color: #666;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .product-info .product-id {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .section-content {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            min-height: 200px;
+        }
+
+        .section-content p {
+            color: #666;
+            font-style: italic;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .button {
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .button-accept {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .button-accept:hover {
+            background-color: #218838;
+        }
+
+        .button-reject {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .button-reject:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Competitive Analysis</h1>
+        <div class="product-info">
+            <strong>Product:</strong> {{ product.title }}<br>
+            <span class="product-id"><strong>Product ID:</strong> {{ product.product_id }}</span>
+        </div>
+
+        <!-- Section 1: Comparison to Competitors Products -->
+        <div class="section">
+            <h2>Comparison to Competitors Products</h2>
+            <div class="section-content">
+                <!-- TODO: This section will be filled in later with competitor comparison data -->
+                <!-- Expected content:
+                     - Table or list comparing key features, prices, ratings
+                     - Competitive positioning analysis
+                     - Market share insights
+                     - Key differentiators
+                -->
+                <p>Content will be populated dynamically...</p>
+            </div>
+        </div>
+
+        <!-- Section 2: Recommendations -->
+        <div class="section">
+            <h2>Recommendations</h2>
+            <div class="section-content">
+                <!-- TODO: This section will be filled in later with AI-generated recommendations -->
+                <!-- Expected content:
+                     - Product improvement suggestions
+                     - Pricing strategy recommendations
+                     - Marketing/positioning advice
+                     - Feature additions or modifications
+                     - Target audience insights
+                -->
+                <p>Content will be populated dynamically...</p>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-container">
+            <a href="{% url 'summary' product.product_id %}" class="button button-accept">Accept Recommendations</a>
+            <a href="{% url 'products_list' %}" class="button button-reject">Reject Recommendations</a>
+        </div>
+    </div>
+</body>
+</html>
