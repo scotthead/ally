@@ -1,3 +1,14 @@
+anthropic
 Django>=5.0,<6.0
 pandas>=2.0.0
 pydantic>=2.0.0
+google-adk>=1.17.0
+google-api-python-client>=2.187.0
+google-auth>=2.41.1
+google-auth-httplib2>=0.2.1
+google-auth-oauthlib>=1.2.3
+litellm>=1.79.3
+openai>=2.6.0
+pytest==8.4.2
+pytest-django>=4.11.1
+tqdm>=4.67.1

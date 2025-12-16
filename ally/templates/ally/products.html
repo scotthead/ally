@@ -200,6 +200,32 @@
         .action-button:hover {
             background-color: #0056b3;
         }
+
+        .action-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -297,7 +323,10 @@
                     </div>
                     {% endif %}
 
-                    <a href="{% url 'recommendations' product.product_id %}" class="action-button">Start Competitive Analysis</a>
+                    <button class="action-button start-analysis-btn" data-product-id="{{ product.product_id }}">
+                        <span class="btn-text">Start Competitive Analysis</span>
+                        <span class="spinner hidden"></span>
+                    </button>
                 </li>
                 {% endfor %}
             </ul>
@@ -308,5 +337,84 @@
             </div>
         {% endif %}
     </div>
+
+    <script>
+        // Get CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+
+        // Handle Start Competitive Analysis button clicks
+        document.querySelectorAll('.start-analysis-btn').forEach(button => {
+            button.addEventListener('click', async function(e) {
+                e.preventDefault();
+
+                const productId = this.dataset.productId;
+                const btnText = this.querySelector('.btn-text');
+                const spinner = this.querySelector('.spinner');
+
+                // Disable button and show spinner
+                this.disabled = true;
+                btnText.textContent = 'Generating Report...';
+                spinner.classList.remove('hidden');
+
+                try {
+                    // Make API request with 5 minute timeout
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes
+
+                    const response = await fetch(`/api/generate-report/${productId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrftoken,
+                            'Content-Type': 'application/json'
+                        },
+                        signal: controller.signal
+                    });
+
+                    clearTimeout(timeoutId);
+
+                    const data = await response.json();
+
+                    if (response.ok && data.status === 'success') {
+                        // Redirect to recommendations page
+                        window.location.href = `/recommendations/${productId}/`;
+                    } else {
+                        throw new Error(data.message || 'Failed to generate report');
+                    }
+                } catch (error) {
+                    // Re-enable button and show error
+                    this.disabled = false;
+                    spinner.classList.add('hidden');
+
+                    if (error.name === 'AbortError') {
+                        btnText.textContent = 'Timeout - Try Again';
+                        alert('Request timed out. The analysis is taking longer than expected. Please try again.');
+                    } else {
+                        btnText.textContent = 'Error - Try Again';
+                        alert(`Error: ${error.message}`);
+                    }
+
+                    // Reset button text after 3 seconds
+                    setTimeout(() => {
+                        btnText.textContent = 'Start Competitive Analysis';
+                    }, 3000);
+                }
+            });
+        });
+    </script>
 </body>
 </html>

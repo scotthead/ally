@@ -129,3 +129,57 @@ PRODUCTS_FILE = os.environ.get(
     'PRODUCTS_FILE',
     str(BASE_DIR / 'ally' / 'data' / 'asin_data_filled.csv')
 )
+
+COMPETITORS_FILE = os.environ.get(
+    'COMPETITORS_FILE',
+    str(BASE_DIR / 'ally' / 'data' / 'synthetic_competitor_products.csv')
+)
+
+GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', 'AIzaSyBkdgkq2aZJ-f_Pb9W1jr7RNGLkzXNbdO4')
+os.environ['GOOGLE_API_KEY'] = GOOGLE_API_KEY
+
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', 'sk-not-setup')
+os.environ['OPENAI_API_KEY'] = OPENAI_API_KEY
+
+ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', 'sk-not-setup')
+os.environ['ANTHROPIC_API_KEY'] = ANTHROPIC_API_KEY
+
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://sys.stdout',
+            'formatter': 'verbose',
+            'level': 'INFO',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'ally': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}

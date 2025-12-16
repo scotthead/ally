@@ -19,6 +19,7 @@ class Product(BaseModel):
     retailer_category_node: Optional[str] = None
     retailer_brand_name: Optional[str] = None
     description_filled: Optional[str] = None
+    source_product_id: Optional[str] = None
 
     @field_validator('image_url', mode='before')
     @classmethod
@@ -159,6 +160,171 @@ class ProductService:
         return [p for p in self.products if query_lower in p.title.lower()]
 
 
-# Initialize the global product service instance
+class CompetitorProductService:
+    """In-memory service for managing competitor products loaded from CSV."""
+
+    def __init__(self, csv_file_path: str):
+        """
+        Initialize the CompetitorProductService with a CSV file.
+
+        Args:
+            csv_file_path: Path to the CSV file containing competitor product data
+        """
+        self.csv_file_path = csv_file_path
+        self.competitors: List[Product] = []
+        self._competitors_by_id: dict[str, Product] = {}
+        self._competitors_by_source: dict[str, List[Product]] = {}
+
+        if os.path.exists(csv_file_path):
+            self.load_from_csv(csv_file_path)
+
+    def load_from_csv(self, csv_file_path: str) -> None:
+        """
+        Load competitor products from a CSV file.
+
+        Args:
+            csv_file_path: Path to the CSV file containing competitor product data
+        """
+        df = pd.read_csv(csv_file_path)
+        self.competitors = self._dataframe_to_products(df)
+        self._competitors_by_id = {product.product_id: product for product in self.competitors}
+
+        # Build index by source_product_id for efficient lookups
+        self._competitors_by_source = {}
+        for competitor in self.competitors:
+            if competitor.source_product_id:
+                if competitor.source_product_id not in self._competitors_by_source:
+                    self._competitors_by_source[competitor.source_product_id] = []
+                self._competitors_by_source[competitor.source_product_id].append(competitor)
+
+    def _dataframe_to_products(self, df: pd.DataFrame) -> List[Product]:
+        """
+        Convert a pandas DataFrame to a list of Product objects.
+
+        Args:
+            df: DataFrame containing competitor product data
+
+        Returns:
+            List of Product objects
+        """
+        products = []
+        for _, row in df.iterrows():
+            product_data = self._row_to_dict(row)
+            product = Product(**product_data)
+            products.append(product)
+        return products
+
+    def _row_to_dict(self, row: pd.Series) -> dict:
+        """
+        Convert a pandas Series (row) to a dictionary suitable for Product creation.
+        Handles NaN values by converting them to None.
+
+        Args:
+            row: Pandas Series representing a row of data
+
+        Returns:
+            Dictionary with product data
+        """
+        data = row.to_dict()
+        # Convert NaN values to None
+        for key, value in data.items():
+            if pd.isna(value):
+                data[key] = None
+        return data
+
+    def get_all_competitors(self) -> List[Product]:
+        """
+        Get all competitor products.
+
+        Returns:
+            List of all competitor products
+        """
+        return self.competitors
+
+    def get_competitor_by_id(self, product_id: str) -> Optional[Product]:
+        """
+        Get a competitor product by its ID.
+
+        Args:
+            product_id: The product ID to search for
+
+        Returns:
+            Product if found, None otherwise
+        """
+        return self._competitors_by_id.get(product_id)
+
+    def get_competitors_for_product(self, source_product_id: str) -> List[Product]:
+        """
+        Get all competitor products generated from a specific source product.
+
+        Args:
+            source_product_id: The source product ID to search for
+
+        Returns:
+            List of competitor products linked to the source product
+        """
+        return self._competitors_by_source.get(source_product_id, [])
+
+    def count(self) -> int:
+        """
+        Get the total number of competitor products.
+
+        Returns:
+            Number of competitor products
+        """
+        return len(self.competitors)
+
+    def count_by_source(self, source_product_id: str) -> int:
+        """
+        Get the number of competitor products for a specific source product.
+
+        Args:
+            source_product_id: The source product ID
+
+        Returns:
+            Number of competitors for the source product
+        """
+        return len(self._competitors_by_source.get(source_product_id, []))
+
+    def get_all_source_product_ids(self) -> List[str]:
+        """
+        Get all unique source product IDs that have competitors.
+
+        Returns:
+            List of source product IDs
+        """
+        return list(self._competitors_by_source.keys())
+
+    def search_by_title(self, query: str) -> List[Product]:
+        """
+        Search competitor products by title (case-insensitive).
+
+        Args:
+            query: Search query string
+
+        Returns:
+            List of competitor products matching the query
+        """
+        query_lower = query.lower()
+        return [p for p in self.competitors if query_lower in p.title.lower()]
+
+    def search_competitors_for_product(self, source_product_id: str, query: str) -> List[Product]:
+        """
+        Search competitor products by title for a specific source product.
+
+        Args:
+            source_product_id: The source product ID
+            query: Search query string
+
+        Returns:
+            List of competitor products matching the query for the source product
+        """
+        competitors = self.get_competitors_for_product(source_product_id)
+        query_lower = query.lower()
+        return [p for p in competitors if query_lower in p.title.lower()]
+
+
+# Initialize the global product service instances
 from django.conf import settings
 product_service = ProductService(settings.PRODUCTS_FILE)
+competitor_service = CompetitorProductService(settings.COMPETITORS_FILE)

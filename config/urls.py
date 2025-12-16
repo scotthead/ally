@@ -22,6 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('products/', views.products_list, name='products_list'),
     path('recommendations/<str:product_id>/', views.recommendations, name='recommendations'),
+    path('api/generate-report/<str:product_id>/', views.generate_competitor_report_view, name='generate_report'),
     path('summary/<str:product_id>/', views.summary, name='summary'),
     path('', views.products_list, name='home'),
 ]
