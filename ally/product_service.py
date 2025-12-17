@@ -159,6 +159,47 @@ class ProductService:
         query_lower = query.lower()
         return [p for p in self.products if query_lower in p.title.lower()]
 
+    def save_to_csv(self, csv_file_path: str = None) -> None:
+        """
+        Save all products to a CSV file.
+
+        Args:
+            csv_file_path: Path to save the CSV file (defaults to the original path)
+
+        Raises:
+            IOError: If the file cannot be written
+        """
+        if csv_file_path is None:
+            csv_file_path = self.csv_file_path
+
+        try:
+            # Convert products to DataFrame
+            products_data = []
+            for product in self.products:
+                product_dict = {
+                    'product_id': product.product_id,
+                    'title': product.title,
+                    'universe': product.universe,
+                    'image_url': json.dumps(product.image_url) if product.image_url else None,
+                    'bullet_points': json.dumps(product.bullet_points) if product.bullet_points else None,
+                    'min_rank_search': product.min_rank_search,
+                    'avg_rank_search': product.avg_rank_search,
+                    'min_rank_category': product.min_rank_category,
+                    'avg_rank_category': product.avg_rank_category,
+                    'retailer_category_node': product.retailer_category_node,
+                    'retailer_brand_name': product.retailer_brand_name,
+                    'description_filled': product.description_filled,
+                    'source_product_id': product.source_product_id
+                }
+                products_data.append(product_dict)
+
+            # Create DataFrame and save to CSV
+            df = pd.DataFrame(products_data)
+            df.to_csv(csv_file_path, index=False)
+
+        except Exception as e:
+            raise IOError(f"Failed to save products to CSV: {str(e)}")
+
 
 class CompetitorProductService:
     """In-memory service for managing competitor products loaded from CSV."""

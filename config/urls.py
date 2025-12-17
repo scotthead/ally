@@ -23,6 +23,7 @@ urlpatterns = [
     path('products/', views.products_list, name='products_list'),
     path('recommendations/<str:product_id>/', views.recommendations, name='recommendations'),
     path('api/generate-report/<str:product_id>/', views.generate_competitor_report_view, name='generate_report'),
+    path('api/finalize-product/<str:product_id>/', views.finalize_product_view, name='finalize_product'),
     path('summary/<str:product_id>/', views.summary, name='summary'),
     path('', views.products_list, name='home'),
 ]

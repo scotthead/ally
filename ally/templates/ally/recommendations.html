@@ -252,6 +252,32 @@
         .button-reject:hover {
             background-color: #c82333;
         }
+
+        .button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -299,13 +325,92 @@
 
         <!-- Action Buttons -->
         <div class="button-container">
-            <a href="{% url 'summary' product.product_id %}" class="button button-accept">Accept Recommendations</a>
+            <button id="accept-btn" class="button button-accept" data-product-id="{{ product.product_id }}">
+                <span class="spinner hidden"></span>
+                <span class="btn-text">Accept Recommendations</span>
+            </button>
             <a href="{% url 'products_list' %}" class="button button-reject">Reject Recommendations</a>
         </div>
     </div>
 
     <!-- Include marked.js library for markdown rendering -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        // Get CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+
+        // Handle Accept Recommendations button click
+        document.getElementById('accept-btn').addEventListener('click', async function(e) {
+            e.preventDefault();
+
+            const productId = this.dataset.productId;
+            const btnText = this.querySelector('.btn-text');
+            const spinner = this.querySelector('.spinner');
+
+            // Disable button and show spinner
+            this.disabled = true;
+            btnText.textContent = 'Applying Recommendations...';
+            spinner.classList.remove('hidden');
+
+            try {
+                // Make API request with 10 minute timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 600000); // 10 minutes
+
+                const response = await fetch(`/api/finalize-product/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'Content-Type': 'application/json'
+                    },
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                const data = await response.json();
+
+                if (response.ok && data.status === 'success') {
+                    // Redirect to summary page
+                    window.location.href = `/summary/${productId}/`;
+                } else {
+                    throw new Error(data.message || 'Failed to finalize product');
+                }
+            } catch (error) {
+                // Re-enable button and show error
+                this.disabled = false;
+                spinner.classList.add('hidden');
+
+                if (error.name === 'AbortError') {
+                    btnText.textContent = 'Timeout - Try Again';
+                    alert('Request timed out. The finalization is taking longer than expected. Please try again.');
+                } else {
+                    btnText.textContent = 'Error - Try Again';
+                    alert(`Error: ${error.message}`);
+                }
+
+                // Reset button text after 3 seconds
+                setTimeout(() => {
+                    btnText.textContent = 'Accept Recommendations';
+                }, 3000);
+            }
+        });
+    </script>
     <script>
         // Configure marked options for better rendering
         marked.setOptions({

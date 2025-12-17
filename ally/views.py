@@ -143,13 +143,58 @@ def generate_competitor_report_view(request, product_id):
         }, status=500)
 
 
+@csrf_exempt
+@require_http_methods(["POST"])
+def finalize_product_view(request, product_id):
+    """API endpoint to finalize product by applying recommendations."""
+    logger.info(f'Received request to finalize product: {product_id}')
+
+    # Verify the product exists
+    product = product_service.get_product_by_id(product_id)
+    if not product:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Product {product_id} not found'
+        }, status=404)
+
+    try:
+        # Run the final agent (which will apply recommendations and create summary)
+        summary = asyncio.run(
+            AgentService.run_final_agent(
+                product_id=product_id,
+                user_id=request.session.session_key or 'anonymous',
+                timeout_seconds=600  # 10 minutes
+            )
+        )
+
+        logger.info(f'Successfully finalized product: {product_id}')
+
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Product finalized successfully',
+            'summary': summary
+        })
+
+    except Exception as e:
+        logger.error(f'Error finalizing product: {str(e)}', exc_info=True)
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Failed to finalize product: {str(e)}'
+        }, status=500)
+
+
 def summary(request, product_id):
     """View to display the summary after accepting recommendations."""
     product = product_service.get_product_by_id(product_id)
     if not product:
         raise Http404("Product not found")
 
+    # Get the summarization from the SummarizationService
+    from ally.services.summarization_service import summarization_service
+    summarization = summarization_service.get_summarization(product_id)
+
     context = {
-        'product': product
+        'product': product,
+        'summarization': summarization
     }
     return render(request, 'ally/summary.html', context)

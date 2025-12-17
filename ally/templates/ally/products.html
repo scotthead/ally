@@ -213,6 +213,15 @@
             cursor: not-allowed;
         }
 
+        .view-updates-btn {
+            background-color: #28a745;
+            margin-left: auto;
+        }
+
+        .view-updates-btn:hover {
+            background-color: #218838;
+        }
+
         .cache-checkbox-label {
             display: flex;
             align-items: center;
@@ -359,6 +368,9 @@
                             <input type="checkbox" class="disable-cache-checkbox" data-product-id="{{ product.product_id }}">
                             Disable Cached Values
                         </label>
+                        <a href="{% url 'summary' product.product_id %}" class="action-button view-updates-btn">
+                            View Last Updates
+                        </a>
                     </div>
                 </li>
                 {% endfor %}

@@ -1,8 +1,11 @@
 """Tools for the Update Product Agent."""
 
 import json
+import logging
 from ally.product_service import product_service
 from ally.services.product_recommendation_service import product_recommendation_service
+
+logger = logging.getLogger(__name__)
 
 
 def get_product_recommendations(product_id: str) -> str:
@@ -61,8 +64,23 @@ def update_product_title(product_id: str, new_title: str) -> str:
                 "error": "New title cannot be empty"
             })
 
+        # Store old title for logging
+        old_title = product.title
+
         # Update the product title
         product.title = new_title.strip()
+
+        # Save changes to disk
+        try:
+            product_service.save_to_csv()
+        except Exception as save_error:
+            return json.dumps({
+                "result": "failure",
+                "error": f"Failed to save changes to disk: {str(save_error)}"
+            })
+
+        # Log the successful update
+        logger.info(f"Product {product_id} title updated: '{old_title}' -> '{new_title.strip()}'")
 
         return json.dumps({
             "result": "success",
@@ -101,8 +119,25 @@ def update_product_description(product_id: str, new_description: str) -> str:
                 "error": "New description cannot be empty"
             })
 
+        # Store old description for logging
+        old_description = product.description_filled
+
         # Update the product description
         product.description_filled = new_description.strip()
+
+        # Save changes to disk
+        try:
+            product_service.save_to_csv()
+        except Exception as save_error:
+            return json.dumps({
+                "result": "failure",
+                "error": f"Failed to save changes to disk: {str(save_error)}"
+            })
+
+        # Log the successful update (truncate long descriptions for readability)
+        old_desc_preview = (old_description[:100] + '...') if old_description and len(old_description) > 100 else old_description
+        new_desc_preview = (new_description[:100] + '...') if len(new_description) > 100 else new_description
+        logger.info(f"Product {product_id} description updated: '{old_desc_preview}' -> '{new_desc_preview}'")
 
         return json.dumps({
             "result": "success",
@@ -141,8 +176,23 @@ def update_product_category(product_id: str, new_category: str) -> str:
                 "error": "New category cannot be empty"
             })
 
+        # Store old category for logging
+        old_category = product.retailer_category_node
+
         # Update the product category
         product.retailer_category_node = new_category.strip()
+
+        # Save changes to disk
+        try:
+            product_service.save_to_csv()
+        except Exception as save_error:
+            return json.dumps({
+                "result": "failure",
+                "error": f"Failed to save changes to disk: {str(save_error)}"
+            })
+
+        # Log the successful update
+        logger.info(f"Product {product_id} category updated: '{old_category}' -> '{new_category.strip()}'")
 
         return json.dumps({
             "result": "success",
@@ -181,8 +231,23 @@ def update_product_brand(product_id: str, new_brand: str) -> str:
                 "error": "New brand name cannot be empty"
             })
 
+        # Store old brand for logging
+        old_brand = product.retailer_brand_name
+
         # Update the product brand
         product.retailer_brand_name = new_brand.strip()
+
+        # Save changes to disk
+        try:
+            product_service.save_to_csv()
+        except Exception as save_error:
+            return json.dumps({
+                "result": "failure",
+                "error": f"Failed to save changes to disk: {str(save_error)}"
+            })
+
+        # Log the successful update
+        logger.info(f"Product {product_id} brand updated: '{old_brand}' -> '{new_brand.strip()}'")
 
         return json.dumps({
             "result": "success",
@@ -226,7 +291,20 @@ def add_bullet_point(product_id: str, bullet_point: str) -> str:
             product.bullet_points = []
 
         # Add the new bullet point
-        product.bullet_points.append(bullet_point.strip())
+        bullet_to_add = bullet_point.strip()
+        product.bullet_points.append(bullet_to_add)
+
+        # Save changes to disk
+        try:
+            product_service.save_to_csv()
+        except Exception as save_error:
+            return json.dumps({
+                "result": "failure",
+                "error": f"Failed to save changes to disk: {str(save_error)}"
+            })
+
+        # Log the successful update
+        logger.info(f"Product {product_id} bullet point added: '{bullet_to_add}' (Total bullet points: {len(product.bullet_points)})")
 
         return json.dumps({
             "result": "success",
@@ -277,6 +355,19 @@ def remove_bullet_point(product_id: str, bullet_point: str) -> str:
 
         if bullet_to_remove in product.bullet_points:
             product.bullet_points.remove(bullet_to_remove)
+
+            # Save changes to disk
+            try:
+                product_service.save_to_csv()
+            except Exception as save_error:
+                return json.dumps({
+                    "result": "failure",
+                    "error": f"Failed to save changes to disk: {str(save_error)}"
+                })
+
+            # Log the successful update
+            logger.info(f"Product {product_id} bullet point removed: '{bullet_to_remove}' (Remaining bullet points: {len(product.bullet_points)})")
+
             return json.dumps({
                 "result": "success",
                 "message": f"Successfully removed bullet point: {bullet_point}"
