@@ -159,6 +159,29 @@ class ProductService:
         query_lower = query.lower()
         return [p for p in self.products if query_lower in p.title.lower()]
 
+    def update_product(self, product: Product) -> None:
+        """
+        Update a product in the service's internal data structures.
+        Replaces the product in both the products list and _products_by_id dictionary.
+
+        Args:
+            product: The updated Product object
+
+        Raises:
+            ValueError: If the product doesn't exist in the service
+        """
+        if product.product_id not in self._products_by_id:
+            raise ValueError(f"Product {product.product_id} not found in service")
+
+        # Update in dictionary
+        self._products_by_id[product.product_id] = product
+
+        # Find and replace in products list
+        for i, p in enumerate(self.products):
+            if p.product_id == product.product_id:
+                self.products[i] = product
+                break
+
     def save_to_csv(self, csv_file_path: str = None) -> None:
         """
         Save all products to a CSV file.
@@ -199,6 +222,25 @@ class ProductService:
 
         except Exception as e:
             raise IOError(f"Failed to save products to CSV: {str(e)}")
+
+    def save_and_reload(self, csv_file_path: str = None) -> None:
+        """
+        Save all products to CSV and then reload from the file to ensure consistency.
+
+        Args:
+            csv_file_path: Path to save the CSV file (defaults to the original path)
+
+        Raises:
+            IOError: If the file cannot be written or read
+        """
+        if csv_file_path is None:
+            csv_file_path = self.csv_file_path
+
+        # Save to CSV
+        self.save_to_csv(csv_file_path)
+
+        # Reload from CSV to ensure data consistency
+        self.load_from_csv(csv_file_path)
 
 
 class CompetitorProductService:

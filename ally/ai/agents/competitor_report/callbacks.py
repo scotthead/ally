@@ -3,6 +3,7 @@ from typing import Dict, Any, List, Tuple, cast
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.models.llm_request import LlmRequest
 from google.genai import types
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -13,9 +14,10 @@ async def save_llm_request_callback(callback_context: CallbackContext, llm_reque
     """
     # Check if interaction saving is enabled and InteractionSaver is available
     try:
+      if settings.AGENT_DEBUG:
         # Extract data from session state (set by the caller)
         request_log = _build_request_log(llm_request)
-        logger.info(f"LLM request: {request_log}")
+        logger.info(f"LLM request({settings.AGENT_DEBUG}): {request_log}")
     except Exception as e:
         logger.error(f"Error logging LLM request: {e}", exc_info=True)
 

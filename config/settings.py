@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import logging
 import os
 from pathlib import Path
 
@@ -151,10 +152,30 @@ os.environ['OPENAI_API_KEY'] = OPENAI_API_KEY
 ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', 'sk-not-setup')
 os.environ['ANTHROPIC_API_KEY'] = ANTHROPIC_API_KEY
 
+AGENT_DEBUG = os.environ.get('AGENT_DEBUG', False)
+print(f"Agent debugging: {AGENT_DEBUG}")
+
+# Custom logging filter to exclude litellm event loop errors
+class IgnoreLitellmEventLoopFilter(logging.Filter):
+    def filter(self, record):
+        # Filter out the litellm event loop error
+        if 'is bound to a different event loop' in str(record.msg):
+            return False
+        if 'litellm_core_utils' in str(record.pathname):
+            if 'Task exception was never retrieved' in str(record.msg):
+                return False
+        return True
+
+
 # Logging Configuration
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'filters': {
+        'ignore_litellm': {
+            '()': IgnoreLitellmEventLoopFilter,
+        },
+    },
     'formatters': {
         'verbose': {
             'format': '{levelname} {asctime} {module} {message}',
@@ -171,6 +192,7 @@ LOGGING = {
             'stream': 'ext://sys.stdout',
             'formatter': 'verbose',
             'level': 'INFO',
+            'filters': ['ignore_litellm'],
         },
     },
     'root': {

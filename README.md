@@ -172,6 +172,8 @@ The system uses multiple AI agents powered by Google's Gemini model:
 
 6. **No User Authentication**: The system does not include user authentication or authorization. All users have full access to view and modify all products.
 
+7. **No Search or Paging for Products**: No search or paging was implemented on the products page, so the user has to scroll through many entries or use built in browser search to interact with the products. This was done due to time constraints.
+
 ## <a name="structure"></a>Project Structure
 
 ```
