@@ -135,7 +135,9 @@ COMPETITORS_FILE = os.environ.get(
     str(BASE_DIR / 'ally' / 'data' / 'synthetic_competitor_products.csv')
 )
 
-GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', 'AIzaSyASHuD39HUddRCLYaefNT1Z5bw4wgbrXM0')
+GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', 'defaults-on-in-private-repo')
+if not GOOGLE_API_KEY:
+    raise ValueError("GOOGLE_API_KEY require. Please set your environment variable to a valid GOOGLE_API_KEY.")
 os.environ['GOOGLE_API_KEY'] = GOOGLE_API_KEY
 
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', 'sk-not-setup')

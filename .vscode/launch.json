@@ -15,6 +15,18 @@
             "django": true,
             "autoStartBrowser": false,
             "program": "${workspaceFolder}/manage.py"
+        },
+        {
+            "name": "Finalize Product Summary",
+            "type": "debugpy",
+            "request": "launch",
+            "args": [
+                "finalize_product",
+                "B0BGR4FTZS"
+            ],
+            "django": true,
+            "autoStartBrowser": false,
+            "program": "${workspaceFolder}/manage.py"
         }
     ]
 }

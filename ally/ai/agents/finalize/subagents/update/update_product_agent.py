@@ -5,6 +5,21 @@ This agent is responsible for applying a single recommendation to a product.
 """
 
 from google.adk import Agent
+from google.adk.models.lite_llm import LiteLlm
+from django.conf import settings
+
+from ally.ai.agents.consts import DEFAULT_MODEL
+from ally.ai.agents.finalize.subagents.update.prompt import UPDATE_PRODUCT_PROMPT
+from ally.ai.agents.finalize.subagents.update.tools import (
+    get_product_recommendations,
+    update_product_title,
+    update_product_description,
+    update_product_category,
+    update_product_brand,
+    add_bullet_point,
+    remove_bullet_point
+)
+from ally.ai.agents.competitor_report.callbacks import save_llm_request_callback
 
 
 def update_product_agent(product_id: str, recommendation_number: int) -> Agent:
@@ -19,26 +34,29 @@ def update_product_agent(product_id: str, recommendation_number: int) -> Agent:
         An Agent configured to update the product
     """
 
-    # Simple prompt for now - will be filled in with more details later
-    prompt = f"""
-You are a product update agent responsible for implementing recommendation #{recommendation_number} for product {product_id}.
-
-Your task:
-1. Analyze the recommendation
-2. Determine the specific changes needed
-3. Apply the changes to the product
-4. Verify the changes were successful
-5. Report on what was updated
-
-Product ID: {product_id}
-Recommendation Number: {recommendation_number}
-
-Please pretend implementing this recommendation and return a successful response saying 'done'.
-"""
+    # Format the prompt with the product_id and recommendation_number
+    prompt = UPDATE_PRODUCT_PROMPT.format(
+        product_id=product_id,
+        recommendation_number=recommendation_number
+    )
 
     return Agent(
-        model="gemini-2.0-flash-exp",
+        model=LiteLlm(
+            model=DEFAULT_MODEL,
+            api_key=settings.GOOGLE_API_KEY
+        ),
         instruction=prompt.strip(),
         name=f"update_product_agent_{recommendation_number}",
-        description=f"Agent that applies recommendation #{recommendation_number} to product {product_id}"
+        description=f"Agent that applies recommendation #{recommendation_number} to product {product_id}",
+        tools=[
+            get_product_recommendations,
+            update_product_title,
+            update_product_description,
+            update_product_category,
+            update_product_brand,
+            add_bullet_point,
+            remove_bullet_point
+        ],
+        output_key=f"update_recommendation_{recommendation_number}_status",
+        before_model_callback=save_llm_request_callback,
     )

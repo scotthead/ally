@@ -1,4 +1,5 @@
 MODEL_GEMINI_2_0_FLASH = "gemini/gemini-2.0-flash"
+MODEL_GEMINI_2_0_FLASH_EXP = "gemini-2.0-flash-exp"
 MODEL_GEMINI_2_5_PRO = "gemini/gemini-2.5-pro"
 MODEL_GEMINI_2_5_FLASH = "gemini/gemini-2.5-flash"
 MODEL_GEMINI_2_5_FLASH_LITE = "gemini/gemini-2.5-flash-lite"
