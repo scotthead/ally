@@ -156,6 +156,8 @@ The system uses multiple AI agents powered by Google's Gemini model:
 
 2. **Synthetic Competitor Data**: The competitor products in the system are synthetic products that were generated using Gemini by taking existing products and creating realistic competitor variations. This approach was necessary because all existing Amazon product APIs that were found required payment or had restrictive access requirements.
 
+3. **Verbose Logging**: Since this was a prototype, verbose logging was added to the system and specifically to the agents to allow for a better view of the interactions and to help debug the system.
+
 ## <a name="limitations"></a>Limitations
 
 1. **Separate Agent Workflow**: Due to time constraints, the competitive report generation and recommendations generation are separate sequential steps. With more time, these could be combined into a single, more efficient workflow that generates both outputs in one pass.
