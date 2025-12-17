@@ -160,7 +160,7 @@ The system uses multiple AI agents powered by Google's Gemini model:
 
 1. **Separate Agent Workflow**: Due to time constraints, the competitive report generation and recommendations generation are separate sequential steps. With more time, these could be combined into a single, more efficient workflow that generates both outputs in one pass.
 
-2. **No Database**: Product data, competitor data, and AWS guidelines are stored in CSV and text files rather than a proper database. This limits query performance and makes concurrent access more difficult.
+2. **File Storage**: Product data, competitor data, and AWS guidelines are stored in CSV and text files rather than the database. This limits query performance and makes concurrent access more difficult. This was done to save time.
 
 3. **AWS Guidelines Processing**: The system loads AWS product listing guidelines from text files and passes them directly to the AI agents. With more time, the guidelines would be processed and stored in a vector database (such as Pinecone) to enable semantic search. This would allow the agents to retrieve only the most relevant guidelines for each specific product category and recommendation type, improving both accuracy and performance.
 
