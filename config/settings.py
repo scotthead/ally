@@ -152,7 +152,7 @@ os.environ['OPENAI_API_KEY'] = OPENAI_API_KEY
 ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', 'sk-not-setup')
 os.environ['ANTHROPIC_API_KEY'] = ANTHROPIC_API_KEY
 
-AGENT_DEBUG = os.environ.get('AGENT_DEBUG', False)
+AGENT_DEBUG = True if os.environ.get('AGENT_DEBUG', "False").lower() in ["true", "yes", "y", "1"] else False
 print(f"Agent debugging: {AGENT_DEBUG}")
 
 # Custom logging filter to exclude litellm event loop errors

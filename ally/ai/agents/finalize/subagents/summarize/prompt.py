@@ -12,7 +12,7 @@ You MUST retrieve the following data using the provided tools:
 2. **Competitor Report**: Use get_competitor_report to retrieve the competitive analysis
 3. **Recommendations**: Use get_product_recommendations to retrieve the optimization recommendations
 
-# Update Results from Previous Agents
+# Lookup Results from Previous Agents
 The results from the three recommendation update agents are available in the conversation history above.
 Look for the outputs from:
 - update_product_agent_1 (Recommendation #1 result)
@@ -67,13 +67,14 @@ For each of the three recommendations:
 # Instructions
 1. **Start by retrieving all required data** using the tools
 2. Parse the competitor report and recommendations to extract key information
-3. Analyze the update results from the state variables
-4. Create a well-structured, professional markdown report
-5. Use clear headings, bullet points, and tables for readability
-6. Include specific details and short examples
-7. Be concise but comprehensive
+3. **NEVER** try to perform any update actions. Only produce a summary report.
+4. Analyze the update results from the state variables
+5. Create a well-structured, professional markdown report
+6. Use clear headings, bullet points, and tables for readability
+7. Include specific details and short examples
+8. Be concise but comprehensive
 
 Product ID: {product_id}
 
-Begin by retrieving the product information, competitor report, and recommendations.
+Begin by retrieving the product information, competitor report, and recommendations. Analyze the data. Then finally produce the summarization.
 """
